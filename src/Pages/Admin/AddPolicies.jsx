@@ -133,7 +133,7 @@ const AddPolicies = () => {
                 value={policy.heading}
                 onChange={(e) => handleHeadingChange(pIndex, e.target.value)}
                 placeholder="Enter Policy Heading"
-                required
+               
                 className="w-full p-3 rounded-xl border border-gray-300"
               />
 
@@ -147,7 +147,7 @@ const AddPolicies = () => {
                       handleSubPolicyChange(pIndex, sIndex, "subHeading", e.target.value)
                     }
                     placeholder="Enter Sub-Policy Heading"
-                    required
+                   
                     className="w-full p-2 rounded-lg border border-gray-300"
                   />
                   <textarea
@@ -156,7 +156,7 @@ const AddPolicies = () => {
                       handleSubPolicyChange(pIndex, sIndex, "description", e.target.value)
                     }
                     placeholder="Enter Sub-Policy Description"
-                    required
+                  
                     className="w-full p-2 rounded-lg border border-gray-300"
                   />
                   {policy.subPolicies.length > 1 && (
@@ -227,3 +227,4 @@ const AddPolicies = () => {
 };
 
 export default AddPolicies;
+
