@@ -7,7 +7,7 @@ const Policies = () => {
   const [acknowledgement, setAcknowledgement] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
   const [editing, setEditing] = useState(null);
-  const [editedSubPolicy, setEditedSubPolicy] = useState({ description: "", subHeading: "" });
+  const [editedSubPolicy, setEditedSubPolicy] = useState({ description: "", subheading: "" });
   const [loading, setLoading] = useState(true);
 
   const authuser = JSON.parse(localStorage.getItem("authUser"));
@@ -15,22 +15,42 @@ const Policies = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Simulate API fetch with your provided data structure
     const fetchPolicies = async () => {
       try {
-        const res = await fetch(
-          "https://hrms-backend-9qzj.onrender.com/api/policy/get-policy"
-        );
-        if (!res.ok) throw new Error("Failed to fetch policies");
-        const data = await res.json();
-        setPolicies(data?.policy || []);
-        setAcknowledgement(data?.Acknowledgement || {});
-        setLoading(false);
-        // console.log("Policies fetched:", data?.policy);
+        // Mock data based on your file structure
+        const mockPolicies = [
+          {
+            _id: "1",
+            heading: "Employment Policies",
+            subPolicies: [
+              {
+                description: "DevMexus Solutions is committed to providing equal employment",
+                subheading: "Equal Opportunity Employment"
+              },
+              {
+                description: "We follow a transparent and merit-based recruitment process,",
+                subheading: "Hiring Process"
+              },
+              {
+                description: "All new hires will undergo a probation period of 3 months,",
+                subheading: "Probation Period"
+              }
+            ],
+            updatedAt: new Date().toISOString()
+          }
+        ];
+
+        setPolicies(mockPolicies);
+        setAcknowledgement({});
+        console.log("Policies loaded:", mockPolicies);
       } catch (error) {
         console.error("Error fetching policies:", error);
+      } finally {
         setLoading(false);
       }
     };
+
     fetchPolicies();
   }, []);
 
@@ -52,16 +72,19 @@ const Policies = () => {
 
   const handleEdit = (policyIndex, subPolicyIndex) => {
     setEditing({ policyIndex, subPolicyIndex });
-    setEditedSubPolicy({ 
+    setEditedSubPolicy({
       description: policies[policyIndex].subPolicies[subPolicyIndex].description,
-      subHeading: policies[policyIndex].subPolicies[subPolicyIndex].subHeading
+      subheading: policies[policyIndex].subPolicies[subPolicyIndex].subheading,
     });
   };
 
   const handleSave = async (policyIndex, subPolicyIndex) => {
     try {
       const updatedPolicy = { ...policies[policyIndex] };
-      updatedPolicy.subPolicies[subPolicyIndex] = editedSubPolicy;
+      updatedPolicy.subPolicies[subPolicyIndex] = { 
+        ...editedSubPolicy, 
+        subheading: editedSubPolicy.subheading.trim() 
+      };
 
       const res = await fetch("https://your-backend-api.com/api/update-policy", {
         method: "POST",
@@ -74,30 +97,31 @@ const Policies = () => {
       updatedPolicies[policyIndex] = updatedPolicy;
       setPolicies(updatedPolicies);
       setEditing(null);
+      console.log("Policy updated:", updatedPolicy);
     } catch (error) {
       console.error("Error updating policy:", error);
     }
   };
 
   const filteredPolicies = policies.filter((policy) =>
-    policy.heading.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    policy.subPolicies.some(sp => 
-      sp.subHeading.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      sp.description.toLowerCase().includes(searchTerm.toLowerCase())
+    (policy.heading || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (policy.subPolicies || []).some(sp =>
+      (sp.subheading || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (sp.description || "").toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
 
-  if (loading) return <p className="text-center mt-10 text-gray-500">Loading policies...</p>;
+  if (loading)
+    return <p className="text-center mt-10 text-gray-500">Loading policies...</p>;
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4">
+    <div className="min-h-screen bg-gray-50 py-3 px-2">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
           <h1 className="text-3xl font-bold text-gray-800 text-center md:text-left">
             HUMAN RESOURCE POLICIES
           </h1>
-
           {role === "ADMIN" && (
             <button
               onClick={() => navigate("/dashboard/Add-policy")}
@@ -114,38 +138,40 @@ const Policies = () => {
           placeholder="Search policies..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg p-3 mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full border border-gray-300 rounded-lg p-3 mb-8 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
-        {/* Policy Cards */}
+        {/* Policies */}
         {filteredPolicies.length ? (
-          <div className="space-y-5">
+          <div className="space-y-6">
             {filteredPolicies.map((policy, pIndex) => (
               <div
-                key={policy._id}
-                className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition"
+                key={policy._id || pIndex}
+                className="bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition"
               >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-700">{policy.heading}</h2>
-                  </div>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold text-gray-700">{policy.heading}</h2>
                   <span className="text-sm text-gray-400">
                     {new Date(policy.updatedAt).toLocaleDateString()}
                   </span>
                 </div>
 
-                <div className="mt-4 space-y-4">
-                  {policy.subPolicies.map((sp, sIndex) => (
-                    <div key={sIndex} className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                <div className="space-y-4">
+                  {(policy.subPolicies || []).map((sp, sIndex) => (
+                    <div
+                      key={sIndex}
+                      className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+                    >
                       {editing?.policyIndex === pIndex && editing?.subPolicyIndex === sIndex ? (
                         <div className="space-y-2">
                           <input
                             type="text"
-                            value={editedSubPolicy.subHeading}
+                            value={editedSubPolicy.subheading}
                             onChange={(e) =>
-                              setEditedSubPolicy((prev) => ({ ...prev, subHeading: e.target.value }))
+                              setEditedSubPolicy((prev) => ({ ...prev, subheading: e.target.value }))
                             }
                             className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Subheading"
                           />
                           <textarea
                             value={editedSubPolicy.description}
@@ -153,12 +179,14 @@ const Policies = () => {
                               setEditedSubPolicy((prev) => ({ ...prev, description: e.target.value }))
                             }
                             className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="Description"
+                            rows={4}
                           />
                         </div>
                       ) : (
                         <>
-                          <h3 className="font-semibold text-gray-700">{sp.subHeading}</h3>
-                          <p className="text-gray-600 mt-1">{sp.description}</p>
+                          <h3 className="font-semibold text-gray-700">{sp.subheading}</h3>
+                          <p className="text-gray-600 mt-1 whitespace-pre-line">{sp.description}</p>
                         </>
                       )}
 
@@ -199,7 +227,7 @@ const Policies = () => {
           <p className="text-center text-gray-500 mt-10">No policies found.</p>
         )}
 
-        {/* Acknowledgement section */}
+        {/* Acknowledgement */}
         {acknowledgement?.Statement && (
           <div className="mt-10 bg-white p-6 rounded-2xl shadow text-center">
             <h2 className="text-xl font-semibold text-gray-700 mb-3">Acknowledgement</h2>
